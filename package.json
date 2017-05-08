@@ -20,6 +20,7 @@
     "typescript": "^2.3.2"
   },
   "scripts": {
-    "dev": "ts-node ./src/wechaty_slave.ts"
+    "dev": "ts-node ./src/wechaty_slave.ts",
+    "start": "NODE_ENV=production ts-node ./src/wechaty_slave.ts"
   }
 }
