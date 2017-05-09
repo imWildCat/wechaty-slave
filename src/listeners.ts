@@ -71,7 +71,8 @@ export async function privateMessageListener(message: Message) {
             if (a.kind === 'reply' && a.content) {
                 message.from().say(a.content);
             } else if (a.kind = 'invite_to_group' && a.group_name) {
-                inviteToGroup(message.from(), a.group_name);
+                const welcomeMessage = a.welcome_message;
+                inviteToGroup(message.from(), a.group_name, welcomeMessage);
             }
         });
     } catch (error) {
