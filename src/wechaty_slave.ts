@@ -4,13 +4,13 @@ import {
     handleLogin,
     handleLogout,
     handleScan,
+    privateMessageListener,
     recordError,
     recordGroupMessage,
-    recordPrivateMessage,
     recordRoomJoin,
     recordRoomLeave,
     recordTopicChange,
-} from './utils/actions';
+} from './listeners';
 
 import { getContainerNumer } from './utils/rancher';
 
@@ -67,7 +67,7 @@ function setUpBot() {
         if (message.room()) {
             recordGroupMessage(message);
         } else {
-            recordPrivateMessage(message);
+            privateMessageListener(message);
         }
     });
 

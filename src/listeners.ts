@@ -1,17 +1,18 @@
 import * as request from 'request-promise-native';
 
 import { Contact, FriendRequest, Message, Room } from 'wechaty';
-import { groupMessageConverter, privateMessageConverter } from './converters/message_converter';
+import { groupMessageConverter, privateMessageConverter } from './utils/converters/message_converter';
 import {
     postGroupMessage,
     postLogin,
     postLoginQRCode,
     postLogout,
     postPrivateMessage,
-} from './networking';
+} from './utils/networking';
 
-import { getEnv } from './others';
-import { getMasterHost } from './host';
+import { getEnv } from './utils/others';
+import { getMasterHost } from './utils/host';
+import { inviteToGroup } from './actions';
 
 const sha1 = require('sha1');
 
@@ -60,7 +61,7 @@ export async function recordGroupMessage(message: Message) {
     }
 }
 
-export async function recordPrivateMessage(message: Message) {
+export async function privateMessageListener(message: Message) {
     try {
         const msgObj = await privateMessageConverter(message);
         const actionsObj = await postPrivateMessage(msgObj);
@@ -68,19 +69,21 @@ export async function recordPrivateMessage(message: Message) {
 
         actions.map(a => {
             if (a.kind === 'reply' && a.content) {
-                message.room().say(a.content);
+                message.from().say(a.content);
+            } else if (a.kind = 'invite_to_group' && a.group_name) {
+                inviteToGroup(message.from(), a.group_name);
             }
         });
     } catch (error) {
-        console.log('Error while recordPrivateMessage:', error);
+        console.log('Error privateMessageListener:', error);
     }
 }
 
 export async function handleFriendRequest(friend: Contact, request: FriendRequest) {
     const wx = friend.weixin();
     console.log('wx:', wx);
-    
-    request.accept();
+
+    await request.accept();
 }
 
 export async function recordRoomLeave(room: Room, leavers: Contact[]) {
@@ -97,19 +100,6 @@ export async function recordRoomJoin(room: Room, invitees: Contact[], inviter: C
 
 export async function recordError(error: any) {
 
-}
-
-function putInRoom(contact: Contact, room: Room) {
-    console.info('Bot', 'putInRoom(%s, %s)', contact.name(), room.topic())
-    try {
-        room.add(contact)
-            .catch(e => {
-                console.error('Bot', 'room.add() exception: %s', e.stack)
-            })
-        setTimeout(_ => room.say('Welcome ', contact), 1000)
-    } catch (e) {
-        console.error('Bot', 'putInRoom() exception: ' + e.stack)
-    }
 }
 
 function transformActionObj(actionsObj) {
